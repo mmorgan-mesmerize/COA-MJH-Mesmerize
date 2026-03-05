@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Mesmerize for Community Oncology — COA Partnership</title>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+  --navy: #003F5C;
+  --purple: #665191;
+  --sky-blue: #0EA5E9;
+  --orange: #FFA600;
+  --slate: #2F4B7C;
+  --bg-dark: #0f172a;
+  --card-bg: #020617;
+  --text-light: #f8fafc;
+  --text-dim: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border: #1e293b;
+  --border-light: #334155;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: var(--bg-dark);
+  font-family: 'Inter', sans-serif;
+  color: var(--text-light);
+  overflow-x: hidden;
+}
+
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--navy), var(--purple), var(--sky-blue), var(--orange));
+  z-index: 1000; transition: width 0.3s ease;
+}
+
+#slide-counter {
+  position: fixed; bottom: 20px; right: 30px;
+  font-family: 'Urbanist', sans-serif; font-size: 16px; font-weight: 700;
+  color: var(--text-muted); background: rgba(2,6,23,0.85);
+  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+  z-index: 1000; backdrop-filter: blur(10px);
+}
+
+#nav-hint {
+  position: fixed; bottom: 20px; left: 30px; font-size: 13px;
+  color: var(--text-muted); background: rgba(2,6,23,0.85);
+  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+  z-index: 1000; opacity: 0.7;
+}
+
+.slide-wrapper {
+  width: 100vw; min-height: 100vh; display: flex;
+  align-items: center; justify-content: center;
+  padding: 40px 0; scroll-snap-align: start;
+}
+
+.slide-container {
+  width: 1280px; height: 720px; background-color: var(--card-bg);
+  border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  border: 1px solid var(--border); padding: 50px 70px;
+  display: flex; flex-direction: column; overflow: hidden; position: relative;
+}
+.slide-container::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at top right, rgba(14,165,233,0.06), transparent 40%);
+  pointer-events: none;
+}
+.slide-container.title-slide {
+  align-items: center; justify-content: center; text-align: center;
+}
+
+.slide-title {
+  font-family: 'Urbanist', sans-serif; font-size: 38px; font-weight: 800;
+  border-left: 6px solid var(--navy); padding-left: 20px;
+  padding-top: 6px; padding-bottom: 6px; color: var(--text-light);
+  background: linear-gradient(90deg, rgba(0,63,92,0.12) 0%, transparent 100%);
+  width: 100%; margin-bottom: 24px; flex-shrink: 0;
+}
+.slide-title.sky-blue { border-left-color: var(--sky-blue); background: linear-gradient(90deg, rgba(14,165,233,0.08) 0%, transparent 100%); }
+.slide-title.orange { border-left-color: var(--orange); background: linear-gradient(90deg, rgba(255,166,0,0.08) 0%, transparent 100%); }
+.slide-title.purple { border-left-color: var(--purple); background: linear-gradient(90deg, rgba(102,81,145,0.08) 0%, transparent 100%); }
+.slide-title.slate { border-left-color: var(--slate); background: linear-gradient(90deg, rgba(47,75,124,0.08) 0%, transparent 100%); }
+.slide-title span { font-weight: 800; }
+.slide-title .hl-sky-blue { color: var(--sky-blue); }
+.slide-title .hl-orange { color: var(--orange); }
+.slide-title .hl-navy { color: var(--navy); }
+
+.slide-content {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; width: 100%; overflow: hidden;
+}
+
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.kpi-grid.four { grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.kpi-card {
+  background-color: var(--bg-dark); border-radius: 12px; padding: 28px;
+  border-top: 5px solid;
+  border-left: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+.kpi-value {
+  font-size: 48px; font-weight: 900; font-family: 'Urbanist', sans-serif; margin-bottom: 6px;
+}
+.kpi-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px;
+}
+.kpi-desc { font-size: 15px; color: var(--text-dim); line-height: 1.5; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; height: 100%; }
+
+.tile {
+  background-color: var(--bg-dark); border-radius: 12px;
+  border: 1px solid var(--border-light); padding: 28px;
+  display: flex; flex-direction: column;
+}
+.tile h3 {
+  font-family: 'Urbanist', sans-serif; font-size: 22px;
+  font-weight: 800; margin-bottom: 12px;
+}
+.tile h3.sky-blue { color: var(--sky-blue); }
+.tile h3.orange { color: var(--orange); }
+.tile h3.purple { color: var(--purple); }
+.tile h3.navy { color: var(--navy); }
+.tile p, .tile li { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+.tile ul { padding-left: 18px; }
+.tile li { margin-bottom: 4px; }
+
+.comp-matrix {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border-light); font-size: 13px;
+}
+.comp-matrix th {
+  background: #1e293b; color: var(--text-muted); font-size: 11px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 12px 14px; text-align: left;
+}
+.comp-matrix td {
+  padding: 11px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text-dim); font-size: 13px;
+}
+.comp-matrix tr:last-child td { border-bottom: none; }
+.comp-matrix .row-highlight td { background: rgba(255,255,255,0.02); }
+.comp-matrix .check { color: #22c55e; }
+.comp-matrix .cross { color: #ef4444; }
+.comp-matrix .partial { color: var(--text-muted); }
+
+.hl { font-weight: 700; }
+.hl-sky-blue { color: var(--sky-blue); }
+.hl-orange { color: var(--orange); }
+.hl-navy { color: var(--navy); }
+.hl-purple { color: var(--purple); }
+.hl-green { color: #22c55e; }
+
+.tagline {
+  background: linear-gradient(90deg, rgba(0,63,92,0.15), rgba(14,165,233,0.1));
+  border: 1px solid rgba(0,63,92,0.3); border-radius: 10px;
+  padding: 14px 24px; font-size: 16px; font-weight: 600;
+  color: var(--text-light); text-align: center; margin-top: auto;
+}
+
+.badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 4px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.badge-green { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.badge-blue { background: rgba(14,165,233,0.15); color: var(--sky-blue); border: 1px solid rgba(14,165,233,0.3); }
+.badge-purple { background: rgba(102,81,145,0.15); color: var(--purple); border: 1px solid rgba(102,81,145,0.3); }
+.badge-orange { background: rgba(255,166,0,0.15); color: var(--orange); border: 1px solid rgba(255,166,0,0.3); }
+.badge-red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+.subtitle { font-size: 16px; color: var(--text-dim); margin-bottom: 20px; line-height: 1.5; }
+
+/* Content type cards */
+.content-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.content-type {
+  background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);
+  padding: 18px; text-align: center;
+}
+.content-type .ct-icon { font-size: 28px; margin-bottom: 8px; display: block; }
+.content-type .ct-label {
+  font-family: 'Urbanist', sans-serif; font-size: 14px;
+  font-weight: 700; color: var(--text-light); margin-bottom: 4px;
+}
+.content-type .ct-desc { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+
+/* Touchpoint flow */
+.touchpoint-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.touchpoint {
+  background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);
+  padding: 20px 16px; text-align: center; border-top: 4px solid; position: relative;
+}
+.touchpoint .tp-icon { font-size: 30px; margin-bottom: 10px; display: block; }
+.touchpoint .tp-label {
+  font-family: 'Urbanist', sans-serif; font-size: 15px;
+  font-weight: 800; color: var(--text-light); margin-bottom: 6px;
+}
+.touchpoint .tp-desc { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+.touchpoint .tp-badge {
+  display: inline-block; font-size: 9px; font-weight: 700;
+  padding: 2px 6px; border-radius: 3px; margin-top: 8px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(239,68,68,0.3); }
+  50% { border-color: rgba(239,68,68,0.7); }
+}
+.urgency-pulse { animation: pulse-border 2s ease-in-out infinite; }
+
+@media print {
+  body { background: white; }
+  .slide-wrapper { page-break-after: always; padding: 0; min-height: auto; }
+  .slide-container { box-shadow: none; border: 1px solid #ddd; }
+  #progress-bar, #slide-counter, #nav-hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="slide-counter">1 / 4</div>
+<div id="nav-hint"><i class="fa-solid fa-arrow-left"></i> <i class="fa-solid fa-arrow-right"></i> Arrow keys to navigate</div>
+
+<!-- ======================== SLIDE 1: Title ======================== -->
+<div class="slide-wrapper" id="slide-1">
+<div class="slide-container title-slide">
+  <div style="margin-bottom: 24px;">
+    <span style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted);">
+      <i class="fa-solid fa-ribbon"></i>&ensp;Mesmerize &ensp;|&ensp; Point-of-Care for Community Oncology
+    </span>
+  </div>
+  <h1 style="font-family: 'Urbanist', sans-serif; font-size: 50px; font-weight: 900; line-height: 1.15; margin-bottom: 20px;">
+    More Than Screens.<br><span style="color: var(--sky-blue);">A Complete Content Partner.</span>
+  </h1>
+  <p style="font-size: 20px; color: var(--text-dim); margin-bottom: 14px; max-width: 900px;">
+    Fully custom content production &bull; White-labeled to your brand &bull; Waiting Room + Exam Room + <span class="hl hl-orange">Pharmacy</span>
+  </p>
+  <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 32px; max-width: 850px;">
+    Powered by <span class="hl" style="color: var(--text-light);">CURE&reg;</span> &bull; <span class="hl" style="color: var(--text-light);">OncLive&reg;</span> &bull; <span class="hl" style="color: var(--text-light);">Targeted Oncology&trade;</span> &bull; <span class="hl" style="color: var(--text-light);">CancerNetwork&reg;</span> &bull; <span class="hl" style="color: var(--text-light);">Oncology Nursing News&reg;</span><br>
+    <span style="font-size: 13px; margin-top: 4px; display: inline-block;">Mesmerize &mdash; a wholly owned subsidiary of MJH Life Sciences, the largest privately held healthcare media network in North America</span>
+  </p>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; max-width: 900px; margin-bottom: 28px;">
+    <div style="text-align: center; padding: 16px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: var(--sky-blue); font-size: 20px; margin-bottom: 6px;"><i class="fa-solid fa-film"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 13px; font-weight: 700;">Custom Videos</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Produced for your practice</div>
+    </div>
+    <div style="text-align: center; padding: 16px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: var(--orange); font-size: 20px; margin-bottom: 6px;"><i class="fa-solid fa-palette"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 13px; font-weight: 700;">White Labeled</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Your brand, your identity</div>
+    </div>
+    <div style="text-align: center; padding: 16px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: #22c55e; font-size: 20px; margin-bottom: 6px;"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 13px; font-weight: 700;">Pharmacy Network</div>
+      <div style="font-size: 11px; color: var(--text-muted);">PatientPoint doesn&rsquo;t offer</div>
+    </div>
+    <div style="text-align: center; padding: 16px; background: var(--bg-dark); border-radius: 10px; border: 1px solid var(--border-light);">
+      <div style="color: var(--purple); font-size: 20px; margin-bottom: 6px;"><i class="fa-solid fa-dollar-sign"></i></div>
+      <div style="font-family: 'Urbanist'; font-size: 13px; font-weight: 700;">$0 Cost</div>
+      <div style="font-size: 11px; color: var(--text-muted);">Hardware + content + support</div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center;">
+    <span class="badge badge-green"><i class="fa-solid fa-check-circle"></i>&ensp;No-Cost to Practice</span>
+    <span class="badge badge-blue"><i class="fa-solid fa-language"></i>&ensp;English &bull; Spanish &bull; Chinese</span>
+    <span class="badge badge-orange"><i class="fa-solid fa-ribbon"></i>&ensp;Oncology-Specialized</span>
+    <span class="badge badge-red urgency-pulse"><i class="fa-solid fa-clock"></i>&ensp;PatientPoint Contract Ends March 27</span>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 2: Custom Content Production ======================== -->
+<div class="slide-wrapper" id="slide-2">
+<div class="slide-container">
+  <div class="slide-title sky-blue">Full-Service <span class="hl-sky-blue">Custom Content Production</span></div>
+  <div class="slide-content">
+    <p class="subtitle" style="margin-bottom: 14px; font-size: 15px;">PatientPoint delivers generic, pre-packaged content. Mesmerize <span class="hl hl-orange">builds content around your practice</span> &mdash; your brand, your providers, your patients.</p>
+    <div class="two-col" style="height: auto; margin-bottom: 16px;">
+      <div>
+        <div style="font-family: 'Urbanist'; font-size: 16px; font-weight: 800; color: var(--sky-blue); margin-bottom: 12px;"><i class="fa-solid fa-wand-magic-sparkles"></i>&ensp;What We Produce for You</div>
+        <div class="content-type-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 14px;">
+          <div class="content-type">
+            <span class="ct-icon" style="color: var(--sky-blue);"><i class="fa-solid fa-video"></i></span>
+            <div class="ct-label">Custom Videos</div>
+            <div class="ct-desc">Practice-branded educational videos for waiting room &amp; exam room</div>
+          </div>
+          <div class="content-type">
+            <span class="ct-icon" style="color: var(--orange);"><i class="fa-solid fa-chart-pie"></i></span>
+            <div class="ct-label">Infographics</div>
+            <div class="ct-desc">Visual content tailored to your patient population &amp; specialties</div>
+          </div>
+          <div class="content-type">
+            <span class="ct-icon" style="color: var(--purple);"><i class="fa-solid fa-bars-staggered"></i></span>
+            <div class="ct-label">Sidebars &amp; Tickers</div>
+            <div class="ct-desc">Practice news, provider spotlights, appointment reminders, events</div>
+          </div>
+          <div class="content-type">
+            <span class="ct-icon" style="color: #22c55e;"><i class="fa-solid fa-stamp"></i></span>
+            <div class="ct-label">100% White Labeled</div>
+            <div class="ct-desc">Your logo, your colors, your brand identity on every screen</div>
+          </div>
+        </div>
+        <div style="background: rgba(14,165,233,0.06); border: 1px solid rgba(14,165,233,0.2); border-radius: 8px; padding: 12px 16px;">
+          <div style="font-size: 12px; color: var(--text-dim); line-height: 1.5;">
+            <i class="fa-solid fa-ribbon" style="color: var(--sky-blue); margin-right: 6px;"></i>
+            <span class="hl" style="color: var(--text-light);">Oncology content powered by CURE&reg;</span> &mdash; the largest consumer cancer publication in the U.S. &mdash; plus OncLive&reg;, Targeted Oncology&trade;, CancerNetwork&reg;, and Oncology Nursing News&reg;
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family: 'Urbanist'; font-size: 16px; font-weight: 800; color: var(--orange); margin-bottom: 12px;"><i class="fa-solid fa-arrow-right-arrow-left"></i>&ensp;PatientPoint vs. Mesmerize Content</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="background: rgba(239,68,68,0.06); border-radius: 10px; padding: 18px; border: 1px solid rgba(239,68,68,0.2);">
+            <div style="font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 8px;"><i class="fa-solid fa-circle-xmark"></i>&ensp;PATIENTPOINT</div>
+            <ul style="font-size: 13px; color: var(--text-dim); line-height: 1.7; padding-left: 16px;">
+              <li>Pre-packaged, one-size-fits-all content</li>
+              <li>Same generic programming across all practices</li>
+              <li>Limited practice customization &mdash; basic text overlays only</li>
+              <li>No custom video or infographic production</li>
+              <li>PatientPoint branding on screen, not yours</li>
+            </ul>
+          </div>
+          <div style="background: rgba(34,197,94,0.06); border-radius: 10px; padding: 18px; border: 1px solid rgba(34,197,94,0.2);">
+            <div style="font-size: 12px; font-weight: 700; color: #22c55e; margin-bottom: 8px;"><i class="fa-solid fa-circle-check"></i>&ensp;MESMERIZE</div>
+            <ul style="font-size: 13px; color: var(--text-dim); line-height: 1.7; padding-left: 16px;">
+              <li><span class="hl" style="color: var(--text-light);">In-house production team</span> creates custom videos, infographics, tickers, and sidebars</li>
+              <li>Every piece of content <span class="hl" style="color: var(--text-light);">tailored to your practice</span></li>
+              <li><span class="hl" style="color: var(--text-light);">100% white labeled</span> &mdash; your brand, your logo, your identity</li>
+              <li>Multilingual content &mdash; English, Spanish, and Chinese</li>
+              <li>Backed by 73 MJH Life Sciences brands with deep oncology expertise</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tagline">
+      <i class="fa-solid fa-paintbrush" style="color: var(--orange); margin-right: 8px;"></i>
+      PatientPoint gives you their content on their screens. Mesmerize gives you <span class="hl hl-sky-blue">your content on your screens</span>.
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 3: Full Ecosystem — Touchpoints ======================== -->
+<div class="slide-wrapper" id="slide-3">
+<div class="slide-container">
+  <div class="slide-title orange">Every Touchpoint, <span class="hl-orange">One Partner</span></div>
+  <div class="slide-content">
+    <p class="subtitle" style="margin-bottom: 14px; font-size: 15px;">Mesmerize covers <span class="hl hl-sky-blue">every patient-facing surface in your practice</span> &mdash; including pharmacy, where PatientPoint has no offering.</p>
+    <div class="touchpoint-grid" style="margin-bottom: 20px;">
+      <div class="touchpoint" style="border-top-color: var(--navy);">
+        <span class="tp-icon" style="color: var(--navy);"><i class="fa-solid fa-tv"></i></span>
+        <div class="tp-label">Waiting Room</div>
+        <div class="tp-desc">Custom patient education videos, practice announcements, tickers, and branded content on managed screens</div>
+        <span class="tp-badge" style="background: rgba(0,63,92,0.15); color: var(--navy);">Both Offer</span>
+      </div>
+      <div class="touchpoint" style="border-top-color: var(--purple);">
+        <span class="tp-icon" style="color: var(--purple);"><i class="fa-solid fa-display"></i></span>
+        <div class="tp-label">Exam Room</div>
+        <div class="tp-desc">Interactive touchscreens with condition-specific education, 3D anatomy models, and provider tools</div>
+        <span class="tp-badge" style="background: rgba(102,81,145,0.15); color: var(--purple);">Both Offer</span>
+      </div>
+      <div class="touchpoint" style="border-top-color: var(--sky-blue);">
+        <span class="tp-icon" style="color: var(--sky-blue);"><i class="fa-solid fa-user-doctor"></i></span>
+        <div class="tp-label">Back Office</div>
+        <div class="tp-desc">HCP-facing content, provider resources, staff communications, and clinical updates</div>
+        <span class="tp-badge" style="background: rgba(14,165,233,0.15); color: var(--sky-blue);">Both Offer</span>
+      </div>
+      <div class="touchpoint" style="border-top-color: #22c55e; border: 2px solid rgba(34,197,94,0.4);">
+        <span class="tp-icon" style="color: #22c55e;"><i class="fa-solid fa-prescription-bottle-medical"></i></span>
+        <div class="tp-label">Pharmacy</div>
+        <div class="tp-desc">Screens in independent and chain pharmacies &mdash; medication education, adherence messaging, and branded content</div>
+        <span class="tp-badge" style="background: rgba(34,197,94,0.2); color: #22c55e;">Mesmerize Only</span>
+      </div>
+    </div>
+    <div class="two-col" style="height: auto; margin-bottom: 16px;">
+      <div class="tile" style="padding: 20px;">
+        <h3 class="sky-blue" style="font-size: 18px;"><i class="fa-solid fa-network-wired"></i>&ensp;Mesmerize Pharmacy Network</h3>
+        <ul style="margin-top: 6px;">
+          <li>Digital screens in <span class="hl" style="color: var(--text-light);">independent &amp; chain pharmacies</span> nationwide</li>
+          <li>Medication adherence &amp; patient education at the point of dispensing</li>
+          <li>Oncology oral therapy education &mdash; critical as cancer treatment shifts to oral medications</li>
+          <li>Seamless extension of your practice&rsquo;s branded content into the pharmacy</li>
+        </ul>
+      </div>
+      <div class="tile" style="padding: 20px;">
+        <h3 class="orange" style="font-size: 18px;"><i class="fa-solid fa-ribbon"></i>&ensp;Oncology Content Library</h3>
+        <ul style="margin-top: 6px;">
+          <li><span class="hl" style="color: var(--text-light);">5,000+ patient education videos</span> covering all cancer types &amp; treatment modalities</li>
+          <li><span class="hl" style="color: var(--text-light);">10,000+ print &amp; interactive media</span> &mdash; infographics, brochures, guides</li>
+          <li>Content from <span class="hl" style="color: var(--text-light);">CURE&reg;</span>, the largest consumer cancer publication in the U.S.</li>
+          <li>Multilingual: English, Spanish, and Chinese</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tagline">
+      <i class="fa-solid fa-circle-nodes" style="color: #22c55e; margin-right: 8px;"></i>
+      One partner for <span class="hl hl-sky-blue">waiting room + exam room + back office + pharmacy</span> &mdash; fully custom, fully branded, fully managed
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================== SLIDE 4: Head-to-Head Comparison ======================== -->
+<div class="slide-wrapper" id="slide-4">
+<div class="slide-container">
+  <div class="slide-title slate">PatientPoint vs. Mesmerize &mdash; <span class="hl-sky-blue">Side by Side</span></div>
+  <div class="slide-content">
+    <p class="subtitle" style="margin-bottom: 14px; font-size: 15px;">Your PatientPoint contract ends <span class="hl hl-orange">March 27</span>. Here&rsquo;s what changes when you switch.</p>
+    <table class="comp-matrix" style="margin-bottom: 16px;">
+      <thead>
+        <tr>
+          <th style="width: 28%;">Capability</th>
+          <th style="width: 36%;"><span class="hl hl-sky-blue">Mesmerize</span></th>
+          <th style="width: 36%;">PatientPoint</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-highlight">
+          <td><strong>Custom Content Production</strong></td>
+          <td><i class="fa-solid fa-check check"></i> <span class="hl hl-green">Full in-house team</span> &mdash; custom videos, infographics, tickers, sidebars</td>
+          <td><i class="fa-solid fa-xmark cross"></i> Pre-packaged content only</td>
+        </tr>
+        <tr>
+          <td><strong>White Labeling</strong></td>
+          <td><i class="fa-solid fa-check check"></i> <span class="hl hl-green">100% your brand</span> &mdash; logo, colors, identity on every screen</td>
+          <td><i class="fa-solid fa-xmark cross"></i> PatientPoint branding</td>
+        </tr>
+        <tr class="row-highlight">
+          <td><strong>Oncology Content Depth</strong></td>
+          <td><i class="fa-solid fa-check check"></i> CURE&reg;, OncLive&reg;, Targeted Oncology&trade;, CancerNetwork&reg;, Oncology Nursing News&reg;</td>
+          <td><i class="fa-solid fa-minus partial"></i> General oncology content</td>
+        </tr>
+        <tr>
+          <td><strong>Content Library Size</strong></td>
+          <td><i class="fa-solid fa-check check"></i> 15,000+ assets (5,000 videos + 10,000 print/interactive)</td>
+          <td><i class="fa-solid fa-minus partial"></i> Limited library</td>
+        </tr>
+        <tr class="row-highlight">
+          <td><strong>Pharmacy Network</strong></td>
+          <td><i class="fa-solid fa-check check"></i> <span class="hl hl-green">Independent &amp; chain pharmacy screens</span></td>
+          <td><i class="fa-solid fa-xmark cross"></i> No pharmacy offering</td>
+        </tr>
+        <tr>
+          <td><strong>Multilingual Content</strong></td>
+          <td><i class="fa-solid fa-check check"></i> English, Spanish, Chinese</td>
+          <td><i class="fa-solid fa-minus partial"></i> Primarily English</td>
+        </tr>
+        <tr class="row-highlight">
+          <td><strong>Waiting Room</strong></td>
+          <td><i class="fa-solid fa-check check"></i> Custom + library content</td>
+          <td><i class="fa-solid fa-check check"></i> COA TV programming</td>
+        </tr>
+        <tr>
+          <td><strong>Exam Room</strong></td>
+          <td><i class="fa-solid fa-check check"></i> Interactive touchscreens</td>
+          <td><i class="fa-solid fa-check check"></i> Interactive screens</td>
+        </tr>
+        <tr class="row-highlight">
+          <td><strong>Back Office</strong></td>
+          <td><i class="fa-solid fa-check check"></i> HCP content + staff comms</td>
+          <td><i class="fa-solid fa-check check"></i> Provider resources</td>
+        </tr>
+        <tr>
+          <td><strong>BioDigital 3D Models</strong></td>
+          <td><i class="fa-solid fa-check check"></i> Available</td>
+          <td><i class="fa-solid fa-check check"></i> Available</td>
+        </tr>
+        <tr class="row-highlight">
+          <td><strong>Cost to Practice</strong></td>
+          <td><i class="fa-solid fa-check check"></i> <span class="hl hl-green">$0</span></td>
+          <td><i class="fa-solid fa-check check"></i> $0</td>
+        </tr>
+        <tr>
+          <td><strong>Parent Company</strong></td>
+          <td><i class="fa-solid fa-check check"></i> MJH Life Sciences &mdash; 73 brands, largest private healthcare media network in NA</td>
+          <td>&mdash;</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="tagline">
+      <i class="fa-solid fa-trophy" style="color: var(--orange); margin-right: 8px;"></i>
+      Same screens. Same cost. <span class="hl hl-sky-blue">Custom content, your brand, pharmacy coverage, and the deepest oncology content library in the industry.</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide-wrapper');
+const totalSlides = slides.length;
+let currentSlide = 0;
+const progressBar = document.getElementById('progress-bar');
+const slideCounter = document.getElementById('slide-counter');
+
+function updateUI() {
+  progressBar.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+  slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+}
+
+function goToSlide(index) {
+  if (index < 0 || index >= totalSlides) return;
+  currentSlide = index;
+  slides[currentSlide].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  updateUI();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    goToSlide(currentSlide + 1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    goToSlide(currentSlide - 1);
+  } else if (e.key === 'Home') {
+    e.preventDefault();
+    goToSlide(0);
+  } else if (e.key === 'End') {
+    e.preventDefault();
+    goToSlide(totalSlides - 1);
+  }
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const index = Array.from(slides).indexOf(entry.target);
+      if (index !== -1) {
+        currentSlide = index;
+        updateUI();
+      }
+    }
+  });
+}, { threshold: 0.5 });
+
+slides.forEach(slide => observer.observe(slide));
+updateUI();
+</script>
+
+</body>
+</html>
